@@ -40,7 +40,7 @@ public class AnimeRepository : IAnimeRepository
             .ToListAsync();
     }
 
-    public async Task UpdateByIdAsync(Anime anime)
+    public async Task UpdateAsync(Anime anime)
     {
         _dbContext.Animes.Update(anime);
         await _dbContext.SaveChangesAsync();
