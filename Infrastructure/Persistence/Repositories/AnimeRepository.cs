@@ -31,23 +31,17 @@ public class AnimeRepository : IAnimeRepository
         return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.ID == id);
     }
 
-    public async Task<Anime?> GetByTitleAsync(string title)
+    public async Task<List<Anime>> GetListAsync(string? title = null, string? description = null)
     {
-        return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.Title == title);
-    }
+        var query = _dbContext.Animes.AsNoTracking().AsQueryable();
 
-    public async Task<Anime?> GetByAuthorAsync(string author)
-    {
-        return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.Author == author);
-    }
+        if (!string.IsNullOrEmpty(title))
+            query = query.Where(a => a.Title.Contains(title));
 
-    public async Task<IEnumerable<Anime>> GetRangeAsync(int start, int end)
-    {
-        return await _dbContext.Animes
-            .AsNoTracking()
-            .Skip((start - 1) * end)
-            .Take(end)
-            .ToListAsync();
+        if (!string.IsNullOrEmpty(description))
+            query = query.Where(a => a.Description.Contains(description));
+
+        return await query.ToListAsync();
     }
 
     public async Task UpdateAsync(Anime anime)
