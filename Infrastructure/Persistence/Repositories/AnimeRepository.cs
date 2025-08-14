@@ -31,6 +31,16 @@ public class AnimeRepository : IAnimeRepository
         return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.ID == id);
     }
 
+    public async Task<Anime?> GetByTitleAsync(string title)
+    {
+        return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.Title == title);
+    }
+
+    public async Task<Anime?> GetByAuthorAsync(string author)
+    {
+        return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.Author == author);
+    }
+
     public async Task<IEnumerable<Anime>> GetRangeAsync(int start, int end)
     {
         return await _dbContext.Animes
