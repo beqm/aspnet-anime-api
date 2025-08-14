@@ -6,6 +6,7 @@ using Application.Queries.Anime.GetAnimeById;
 using Application.Queries.Anime.GetAnimeRange;
 using Application.Commands.Anime.UpdateAnime;
 using Application.Commands.Anime.DeleteAnime;
+using Application.Queries.Anime.GetAnimeByTitle;
 
 namespace Api.Controllers;
 
@@ -31,6 +32,14 @@ public class AnimeController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var anime = await _mediator.Send(new GetAnimeByIdQuery(id));
+        if (anime == null) return NotFound();
+        return Ok(anime);
+    }
+
+    [HttpGet("{title}")]
+    public async Task<IActionResult> GetByTitle(string title)
+    {
+        var anime = await _mediator.Send(new GetAnimeByTitleQuery(title));
         if (anime == null) return NotFound();
         return Ok(anime);
     }
