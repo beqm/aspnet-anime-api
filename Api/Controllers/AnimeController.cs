@@ -43,14 +43,14 @@ public class AnimeController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
     {
         var result = await _mediator.Send(command with { ID = id });
         return Ok(result);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteById([FromRoute] int id)
     {
         await _mediator.Send(new DeleteAnimeCommand(id));
