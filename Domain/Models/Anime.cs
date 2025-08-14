@@ -23,4 +23,23 @@ public class Anime
     {
         return new Anime(title, author, description);
     }
+
+    public void Update(string? title = null, string? author = null, string? description = null)
+    {
+
+        if (!string.IsNullOrWhiteSpace(title) && title != Title)
+        {
+            Title = title;
+        }
+
+        if (!string.IsNullOrWhiteSpace(author) && author != Author)
+        {
+            Author = author;
+        }
+
+        if (!string.IsNullOrWhiteSpace(description) && description != Description)
+        {
+            Description = description;
+        }
+    }
 }
