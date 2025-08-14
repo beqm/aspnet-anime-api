@@ -5,6 +5,7 @@ using Application.Commands.Anime.CreateAnime;
 using Application.Queries.Anime.GetAnimeById;
 using Application.Queries.Anime.GetAnimeRange;
 using Application.Commands.Anime.UpdateAnime;
+using Application.Commands.Anime.DeleteAnime;
 
 namespace Api.Controllers;
 
@@ -47,5 +48,12 @@ public class AnimeController : ControllerBase
     {
         var result = await _mediator.Send(command with { ID = id });
         return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteById([FromRoute] int id)
+    {
+        await _mediator.Send(new DeleteAnimeCommand(id));
+        return NoContent();
     }
 }
