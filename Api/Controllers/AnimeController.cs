@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 using Application.Commands.Anime.CreateAnime;
 using Application.Queries.Anime.GetAnimeById;
-using Application.Queries.Anime.GetAnimeRange;
 using Application.Commands.Anime.UpdateAnime;
 using Application.Commands.Anime.DeleteAnime;
-using Application.Queries.Anime.GetAnimeByTitle;
+using Application.Queries.Anime.GetAnimeList;
 
 namespace Api.Controllers;
 
@@ -36,21 +35,13 @@ public class AnimeController : ControllerBase
         return Ok(anime);
     }
 
-    [HttpGet("{title}")]
-    public async Task<IActionResult> GetByTitle(string title)
+    [HttpGet]
+    public async Task<IActionResult> Get([FromQuery] string? title, [FromQuery] string? author)
     {
-        var anime = await _mediator.Send(new GetAnimeByTitleQuery(title));
-        if (anime == null) return NotFound();
-        return Ok(anime);
+        var animes = await _mediator.Send(new GetAnimeListQuery(title, author));
+        return Ok(animes);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetRange([FromQuery] int start = 1, [FromQuery] int end = 10)
-    {
-        var query = new GetAnimeRangeQuery(start, end);
-        var result = await _mediator.Send(query);
-        return Ok(result);
-    }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
