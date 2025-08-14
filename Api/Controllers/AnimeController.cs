@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Application.Commands.Anime.CreateAnime;
 using Application.Queries.Anime.GetAnimeById;
 using Application.Queries.Anime.GetAnimeRange;
+using Application.Commands.Anime.UpdateAnime;
 
 namespace Api.Controllers;
 
@@ -38,6 +39,13 @@ public class AnimeController : ControllerBase
     {
         var query = new GetAnimeRangeQuery(start, end);
         var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
+    {
+        var result = await _mediator.Send(command with { ID = id });
         return Ok(result);
     }
 }
