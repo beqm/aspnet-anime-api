@@ -1,17 +1,17 @@
 using MediatR;
 using Serilog;
 using FluentValidation;
+using System.Reflection;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 using Infrastructure.Persistence;
 using Application.Common.Mappings;
 using Application.Common.Behaviors;
 using Microsoft.EntityFrameworkCore;
-using Application.Commands.Anime.CreateAnime;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.OpenApi.Models;
+using Application.Commands.Anime.CreateAnime;
 
 namespace Api.Extensions;
 
@@ -98,6 +98,10 @@ public static class ServiceExtensions
                         Version = description.ApiVersion.ToString()
                     });
             }
+
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            options.IncludeXmlComments(xmlPath);
         });
 
         return builder;

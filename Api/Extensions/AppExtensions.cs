@@ -1,7 +1,6 @@
 using Api.Middleware;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Extensions;
 
