@@ -50,10 +50,10 @@ public class AnimeController : ControllerBase
     [ProducesResponseType(typeof(Anime), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Create([FromBody] CreateAnimeCommand command)
+    public async Task<IResult> Create([FromBody] CreateAnimeCommand command)
     {
         var result = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id = result.ID }, result);
+        return result.ToIResult(StatusCodes.Status201Created);
     }
 
     /// <summary>
@@ -71,11 +71,11 @@ public class AnimeController : ControllerBase
     [ProducesResponseType(typeof(Anime), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IResult> GetById(int id)
     {
-        var anime = await _mediator.Send(new GetAnimeByIdQuery(id));
-        if (anime == null) return NotFound();
-        return Ok(anime);
+        var result = await _mediator.Send(new GetAnimeByIdQuery(id));
+        Console.WriteLine(result.IsSuccess);
+        return result.ToIResult(StatusCodes.Status200OK);
     }
 
     /// <summary>
@@ -92,10 +92,10 @@ public class AnimeController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<Anime>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Get([FromQuery] string? title, [FromQuery] string? author)
+    public async Task<IResult> Get([FromQuery] string? title, [FromQuery] string? author)
     {
-        var animes = await _mediator.Send(new GetAnimeListQuery(title, author));
-        return Ok(animes);
+        var result = await _mediator.Send(new GetAnimeListQuery(title, author));
+        return result.ToIResult(StatusCodes.Status200OK);
     }
 
     /// <summary>
@@ -116,10 +116,10 @@ public class AnimeController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
+    public async Task<IResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
     {
         var result = await _mediator.Send(command with { ID = id });
-        return Ok(result);
+        return result.ToIResult(StatusCodes.Status200OK);
     }
 
     /// <summary>
@@ -136,10 +136,10 @@ public class AnimeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteById([FromRoute] int id)
+    public async Task<IResult> DeleteById([FromRoute] int id)
     {
-        await _mediator.Send(new DeleteAnimeCommand(id));
-        return NoContent();
+        var result = await _mediator.Send(new DeleteAnimeCommand(id));
+        return result.ToIResult(StatusCodes.Status204NoContent);
     }
 }
 

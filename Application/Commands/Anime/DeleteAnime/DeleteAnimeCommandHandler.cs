@@ -1,10 +1,11 @@
 using MediatR;
-using AutoMapper;
+using FluentResults;
 using Domain.Interfaces;
+using Application.Errors;
 
 namespace Application.Commands.Anime.DeleteAnime;
 
-public class DeleteAnimeCommandHandler : IRequestHandler<DeleteAnimeCommand, int>
+public class DeleteAnimeCommandHandler : IRequestHandler<DeleteAnimeCommand, Result<Unit>>
 {
     private readonly IAnimeRepository _repository;
 
@@ -13,9 +14,13 @@ public class DeleteAnimeCommandHandler : IRequestHandler<DeleteAnimeCommand, int
         _repository = repository;
     }
 
-    public async Task<int> Handle(DeleteAnimeCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(DeleteAnimeCommand request, CancellationToken cancellationToken)
     {
-        await _repository.DeleteByIdAsync(request.ID);
-        return request.ID;
+        var result = await _repository.DeleteByIdAsync(request.ID);
+        if (result == 0)
+        {
+            return Result.Fail(new NotFound($"Anime with Id {request.ID} not found."));
+        }
+        return Result.Ok();
     }
 }

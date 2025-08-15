@@ -1,8 +1,7 @@
 using Serilog;
 using System.Net;
 using System.Text.Json;
-using FluentValidation;
-using Application.Common.Exceptions;
+using FluentResults;
 
 namespace Api.Middleware;
 
@@ -10,7 +9,8 @@ public class ErrorResponse
 {
     public int StatusCode { get; set; }
     public string Message { get; set; } = string.Empty;
-    public List<string> Errors { get; set; } = new();
+    public List<object> Errors { get; set; } = new();
+    public string TraceId { get; set; } = string.Empty;
 }
 
 public class ErrorMiddleware
@@ -27,26 +27,11 @@ public class ErrorMiddleware
         try
         {
             await _next(context);
-        }
-        catch (ValidationException ex)
-        {
-            Log.Error(ex, "Validation error");
-            await HandleValidationExceptionAsync(context, ex);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            Log.Error(ex, "Resource not found");
-            await HandleNotFoundExceptionAsync(context, ex);
-        }
-        catch (ConflictException ex)
-        {
-            Log.Error(ex, "Conflict error");
-            await HandleConflictExceptionAsync(context, ex);
-        }
-        catch (ApplicationException ex)
-        {
-            Log.Error(ex, "Application exception");
-            await HandleApplicationExceptionAsync(context, ex);
+
+            if (context.Items.TryGetValue("FluentResult", out var resultObj) && resultObj is Result result)
+            {
+                await WriteFluentResultAsync(context, result);
+            }
         }
         catch (Exception ex)
         {
@@ -55,61 +40,39 @@ public class ErrorMiddleware
         }
     }
 
-    private static async Task HandleValidationExceptionAsync(HttpContext context, ValidationException ex)
+    private static async Task WriteFluentResultAsync(HttpContext context, Result result)
     {
+        if (result.IsSuccess)
+        {
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+            }
+            return;
+        }
+
+        var firstStatus = result.Errors
+            .SelectMany(e => e.Metadata)
+            .Where(m => m.Key == "StatusCode" && m.Value is int)
+            .Select(m => (int)m.Value)
+            .FirstOrDefault();
+
+        var statusCode = firstStatus != 0 ? firstStatus : (int)HttpStatusCode.BadRequest;
+
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+        context.Response.StatusCode = statusCode;
+
+        var errorList = result.Errors.Select(e => new
+        {
+            e.Message,
+            e.Metadata
+        }).ToList();
 
         var response = new ErrorResponse
         {
-            StatusCode = context.Response.StatusCode,
-            Message = "Validation failed.",
-            Errors = ex.Errors.Select(e => e.ErrorMessage).ToList()
-        };
-
-        var json = JsonSerializer.Serialize(response);
-        await context.Response.WriteAsync(json);
-    }
-
-    private static async Task HandleNotFoundExceptionAsync(HttpContext context, KeyNotFoundException ex)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-
-        var response = new ErrorResponse
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = ex.Message
-        };
-
-        var json = JsonSerializer.Serialize(response);
-        await context.Response.WriteAsync(json);
-    }
-
-    private static async Task HandleConflictExceptionAsync(HttpContext context, ConflictException ex)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-
-        var response = new ErrorResponse
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = ex.Message
-        };
-
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
-    }
-
-
-    private static async Task HandleApplicationExceptionAsync(HttpContext context, ApplicationException ex)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        var response = new ErrorResponse
-        {
-            StatusCode = context.Response.StatusCode,
-            Message = ex.Message
+            StatusCode = statusCode,
+            Message = "Operation failed",
+            Errors = errorList.Cast<object>().ToList()
         };
 
         var json = JsonSerializer.Serialize(response);
@@ -124,8 +87,15 @@ public class ErrorMiddleware
         var response = new ErrorResponse
         {
             StatusCode = context.Response.StatusCode,
-            Message = "An unexpected error occurred."
+            Message = "An unexpected error occurred.",
+            Errors = new List<object>
+            {
+                new { ex.Message }
+            },
+            TraceId = context.TraceIdentifier
         };
+
+        Log.Error(ex, "Unhandled exception");
 
         var json = JsonSerializer.Serialize(response);
         await context.Response.WriteAsync(json);
