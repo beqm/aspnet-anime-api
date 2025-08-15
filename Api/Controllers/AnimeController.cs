@@ -12,7 +12,8 @@ using Application.Queries.Anime.GetAnimeList;
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/v1/anime")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class AnimeController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -69,3 +70,4 @@ public class AnimeController : ControllerBase
         return NoContent();
     }
 }
+

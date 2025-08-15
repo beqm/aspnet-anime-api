@@ -7,6 +7,11 @@ using Application.Common.Mappings;
 using Application.Common.Behaviors;
 using Microsoft.EntityFrameworkCore;
 using Application.Commands.Anime.CreateAnime;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.OpenApi.Models;
 
 namespace Api.Extensions;
 
@@ -65,11 +70,57 @@ public static class ServiceExtensions
 
     public static WebApplicationBuilder Swagger(this WebApplicationBuilder builder)
     {
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
+        builder.Services.AddApiVersioning(options =>
         {
-            c.SwaggerDoc("v1", new() { Title = "Anime API", Version = "v1" });
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
         });
+
+        builder.Services.AddVersionedApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
+        builder.Services.AddSwaggerGen(options =>
+        {
+            var provider = builder.Services.BuildServiceProvider()
+                            .GetRequiredService<IApiVersionDescriptionProvider>();
+
+            foreach (var description in provider.ApiVersionDescriptions)
+            {
+                options.SwaggerDoc(
+                    description.GroupName,
+                    new OpenApiInfo
+                    {
+                        Title = $"Anime API {description.ApiVersion}",
+                        Version = description.ApiVersion.ToString()
+                    });
+            }
+        });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder Versioning(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddApiVersioning(options =>
+        {
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ReportApiVersions = true;
+
+            // Lendo a versão via URL: api/v1/...
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        });
+
+        builder.Services.AddVersionedApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true; // Substitui a versão no template da rota
+        });
+
         return builder;
     }
 

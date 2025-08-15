@@ -7,6 +7,7 @@ builder.Logger()
     .AutoMapper()
     .Mediatr()
     .Swagger()
+    .Versioning()
     .Repositories();
 
 builder.Services.AddOpenApi();
@@ -19,5 +20,6 @@ app.MapControllers();
 app.Middlewares();
 app.AutoMigrations();
 app.Swagger();
+app.UseApiVersioning();
 
 app.Run();
