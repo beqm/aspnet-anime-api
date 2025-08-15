@@ -40,6 +40,12 @@ No terminal, execute:
 docker-compose up --build
 ```
 
+ou
+
+```bash
+podman compose up --build
+```
+
 # Acessando os serviços
 
 ## API Swagger
