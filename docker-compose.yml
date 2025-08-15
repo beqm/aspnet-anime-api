@@ -44,6 +44,8 @@ services:
       - sqlserver
     networks:
       - anime-net
+    volumes:
+      - log-volume:/logs
 
 networks:
   anime-net:
@@ -52,3 +54,4 @@ networks:
 volumes:
   sqlserver-volume:
   cloudbeaver-volume:
+  log-volume:

@@ -26,7 +26,7 @@ public static class ServiceExtensions
             .MinimumLevel.Information()
             .WriteTo.Console(outputTemplate: outputTemplate)
             .WriteTo.File(
-                "../logs/errors.log",
+                "./logs/.log",
                 rollingInterval: RollingInterval.Day,
                 restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error,
                 outputTemplate: outputTemplate
