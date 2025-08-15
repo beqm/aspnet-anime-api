@@ -31,6 +31,11 @@ public class AnimeRepository : IAnimeRepository
         return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.ID == id);
     }
 
+    public async Task<Anime?> GetByTitleAsync(string title)
+    {
+        return await _dbContext.Animes.AsNoTracking().FirstOrDefaultAsync(t => t.Title == title);
+    }
+
     public async Task<List<Anime>> GetListAsync(string? title = null, string? description = null)
     {
         var query = _dbContext.Animes.AsNoTracking().AsQueryable();

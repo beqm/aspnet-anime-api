@@ -6,6 +6,7 @@ public interface IAnimeRepository
 {
     Task AddAsync(Anime anime);
     Task<Anime?> GetByIdAsync(int id);
+    Task<Anime?> GetByTitleAsync(string title);
     Task<List<Anime>> GetListAsync(string? title = null, string? description = null);
     Task<int> UpdateAsync(Anime anime);
     Task<int> DeleteByIdAsync(int id);
