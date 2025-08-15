@@ -1,4 +1,6 @@
 using MediatR;
+using Domain.Models;
+using Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 
 using Application.Commands.Anime.CreateAnime;
@@ -10,7 +12,8 @@ using Application.Queries.Anime.GetAnimeList;
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/v1/anime")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class AnimeController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -21,6 +24,8 @@ public class AnimeController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(Anime), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] CreateAnimeCommand command)
     {
         var result = await _mediator.Send(command);
@@ -28,6 +33,8 @@ public class AnimeController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anime), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(int id)
     {
         var anime = await _mediator.Send(new GetAnimeByIdQuery(id));
@@ -36,6 +43,7 @@ public class AnimeController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Anime>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get([FromQuery] string? title, [FromQuery] string? author)
     {
         var animes = await _mediator.Send(new GetAnimeListQuery(title, author));
@@ -44,6 +52,9 @@ public class AnimeController : ControllerBase
 
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anime), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateAnimeCommand command)
     {
         var result = await _mediator.Send(command with { ID = id });
@@ -51,9 +62,12 @@ public class AnimeController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteById([FromRoute] int id)
     {
         await _mediator.Send(new DeleteAnimeCommand(id));
         return NoContent();
     }
 }
+

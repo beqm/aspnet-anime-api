@@ -7,6 +7,7 @@ builder.Logger()
     .AutoMapper()
     .Mediatr()
     .Swagger()
+    .Versioning()
     .Repositories();
 
 builder.Services.AddOpenApi();
@@ -14,15 +15,11 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Middlewares();
 app.AutoMigrations();
+app.Swagger();
+app.UseApiVersioning();
 
 app.Run();
