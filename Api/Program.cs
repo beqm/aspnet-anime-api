@@ -6,6 +6,7 @@ builder.Logger()
     .Database(builder.Configuration)
     .AutoMapper()
     .Mediatr()
+    .RateLimit(permitLimit: 100, window: TimeSpan.FromMinutes(1))
     .Swagger()
     .Versioning()
     .Repositories();
@@ -20,6 +21,7 @@ app.MapControllers();
 app.Middlewares();
 app.AutoMigrations();
 app.Swagger();
+app.UseRateLimiter();
 app.UseApiVersioning();
 
 app.Run();
