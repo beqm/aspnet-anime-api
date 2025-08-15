@@ -44,21 +44,19 @@ public class AnimeRepository : IAnimeRepository
         return await query.ToListAsync();
     }
 
-    public async Task UpdateAsync(Anime anime)
+    public async Task<int> UpdateAsync(Anime anime)
     {
         _dbContext.Animes.Update(anime);
-        await _dbContext.SaveChangesAsync();
+        var result = await _dbContext.SaveChangesAsync();
+        return result;
     }
 
-    public async Task DeleteByIdAsync(int id)
+    public async Task<int> DeleteByIdAsync(int id)
     {
         var result = await _dbContext
             .Animes
             .Where(t => t.ID == id)
             .ExecuteDeleteAsync();
-        if (result == 0)
-        {
-            throw new KeyNotFoundException($"Task with ID {id} not found.");
-        }
+        return result;
     }
 }
