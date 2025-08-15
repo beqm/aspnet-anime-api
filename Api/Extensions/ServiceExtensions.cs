@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Application.Commands.Anime.CreateAnime;
+using System.Threading.RateLimiting;
 
 namespace Api.Extensions;
 
@@ -65,6 +66,42 @@ public static class ServiceExtensions
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
         builder.Services.AddValidatorsFromAssembly(typeof(CreateAnimeCommand).Assembly);
+        return builder;
+    }
+
+    public static WebApplicationBuilder RateLimit(
+        this WebApplicationBuilder builder,
+        int permitLimit = 100,
+        TimeSpan? window = null,
+        int queueLimit = 0)
+    {
+        var windowDuration = window ?? TimeSpan.FromMinutes(1);
+
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ip,
+                    factory: key => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = permitLimit,
+                        Window = windowDuration,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = queueLimit
+                    });
+            });
+
+            options.OnRejected = async (context, token) =>
+            {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                await context.HttpContext.Response.WriteAsync(
+                    "Request limit reached. Please try again later", token);
+            };
+        });
+
         return builder;
     }
 
