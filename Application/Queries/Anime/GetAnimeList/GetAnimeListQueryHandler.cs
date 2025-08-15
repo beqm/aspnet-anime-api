@@ -1,11 +1,12 @@
 using MediatR;
 using AutoMapper;
+using FluentResults;
 using Application.Dtos;
 using Domain.Interfaces;
 
 namespace Application.Queries.Anime.GetAnimeList;
 
-public class GetAnimeListQueryHandler : IRequestHandler<GetAnimeListQuery, IEnumerable<AnimeDto>>
+public class GetAnimeListQueryHandler : IRequestHandler<GetAnimeListQuery, Result<List<AnimeDto>>>
 {
     private readonly IAnimeRepository _repository;
     private readonly IMapper _mapper;
@@ -16,15 +17,12 @@ public class GetAnimeListQueryHandler : IRequestHandler<GetAnimeListQuery, IEnum
         _repository = repository;
     }
 
-    public async Task<IEnumerable<AnimeDto>> Handle(GetAnimeListQuery request, CancellationToken cancellationToken)
+
+    public async Task<Result<List<AnimeDto>>> Handle(GetAnimeListQuery request, CancellationToken cancellationToken)
     {
-        var anime = await _repository.GetListAsync(request.Author, request.Description);
+        var animes = await _repository.GetListAsync(request.Author, request.Description);
 
-        if (anime == null)
-        {
-            throw new KeyNotFoundException($"Anime not found.");
-        }
-
-        return _mapper.Map<IEnumerable<AnimeDto>>(anime);
+        var dto = _mapper.Map<List<AnimeDto>>(animes);
+        return Result.Ok(dto);
     }
 }
