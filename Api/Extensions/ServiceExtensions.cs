@@ -66,7 +66,10 @@ public static class ServiceExtensions
     public static WebApplicationBuilder Swagger(this WebApplicationBuilder builder)
     {
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new() { Title = "Anime API", Version = "v1" });
+        });
         return builder;
     }
 

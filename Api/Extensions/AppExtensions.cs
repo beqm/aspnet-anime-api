@@ -12,6 +12,20 @@ public static class AppExtensions
         return app;
     }
 
+    public static WebApplication Swagger(this WebApplication app)
+    {
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Anime API v1");
+            });
+        }
+        return app;
+    }
+
+
     public static WebApplication AutoMigrations(this WebApplication app)
     {
         using (var scope = app.Services.CreateScope())
