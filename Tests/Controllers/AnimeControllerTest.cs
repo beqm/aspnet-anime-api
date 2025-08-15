@@ -134,7 +134,6 @@ namespace Tests.Controllers
             var result = await _controller.DeleteById(id);
 
             result.Should().NotBeNull();
-            // Se quiser testar especificamente NoContent:
             result.Should().BeAssignableTo<IResult>();
         }
 

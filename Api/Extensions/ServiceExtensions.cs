@@ -115,14 +115,13 @@ public static class ServiceExtensions
             options.DefaultApiVersion = new ApiVersion(1, 0);
             options.ReportApiVersions = true;
 
-            // Lendo a versão via URL: api/v1/...
             options.ApiVersionReader = new UrlSegmentApiVersionReader();
         });
 
         builder.Services.AddVersionedApiExplorer(options =>
         {
             options.GroupNameFormat = "'v'VVV";
-            options.SubstituteApiVersionInUrl = true; // Substitui a versão no template da rota
+            options.SubstituteApiVersionInUrl = true;
         });
 
         return builder;
